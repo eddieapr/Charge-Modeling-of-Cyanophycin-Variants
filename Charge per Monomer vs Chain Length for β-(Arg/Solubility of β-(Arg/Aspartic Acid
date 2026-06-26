@@ -1,0 +1,90 @@
+clear; clc;
+%% Aspartic Acid (Carboxylic Acid Group)
+% Charge speciation of Aspartic Acid carboxylic acid group across pH spectrum
+
+% Define pH range
+pH_range = 0:0.1:14;  % Updated pH range
+
+% Define pKa value for carboxylic acid group
+pKa_carboxylic_AA = 1.88;
+
+% Calculate protonation state of carboxylic acid group
+COOH_AA =(1 ./ (1 + 10.^(pH_range - pKa_carboxylic_AA)))-1;
+
+
+% Plot the charge speciation
+figure;
+plot(pH_range, COOH_AA, '--', 'LineWidth', 2, 'DisplayName', 'Overall Charge', 'Color', '#FF0000');
+hold off;
+
+
+% Add labels and title
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Aspartic Acid Carboxylic Acid Group across pH Spectrum');
+grid on;
+
+%% Aspartic Acid (Amino Group)
+% Charge speciation of aspartic acid amino group across pH spectrum
+
+% Define pH range
+pH_range = 0:0.1:14;  % Updated pH range
+
+% Define pKa value for amino group
+pKa_amino_nterm_AA = 9.60;
+
+% Calculate protonation state of amino group
+NH3_nterm_AA = (1 ./ (1 + 10.^(pH_range - pKa_amino_nterm_AA)))-1;
+
+
+% Plot the charge speciation
+figure;
+plot(pH_range, NH3_nterm_AA, '--', 'LineWidth', 2, 'DisplayName', 'Overall Charge','Color', '#0000FF');
+hold off;
+
+% Add labels and title
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Aspartic Acid Amino Group across pH Spectrum');
+grid on;
+
+%% Aspartic Acid (Side Chain)
+% Charge speciation of Aspartic Acid side chain amino group across pH spectrum
+
+% Define pH range
+pH_range = 0:0.1:14;  % Updated pH range
+
+% Define pKa value for side chain amino group
+pKa_amino_sidechain_AA = 3.65;
+
+% Calculate protonation state of side chain amino group
+NH3_sidechain_AA = 1 ./ (1 + 10.^(pH_range - pKa_amino_sidechain_AA));
+
+% Plot the charge speciation
+figure;
+plot(pH_range, NH3_sidechain_AA, '--', 'LineWidth', 2, 'DisplayName', 'Overall Charge','Color','#77AC30');
+hold off;
+
+% Add labels and title
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Aspartic Acid  Side Chain Amino Group across pH Spectrum');
+grid on;
+
+
+%% Aspartic Acid Overall
+
+%Calculate overall charge for Aspartic Acid 
+Overall_Charge_All_AA = COOH_AA+NH3_sidechain_AA+NH3_nterm_AA;
+
+figure;
+plot(pH_range, Overall_Charge_All_AA, 'g-', 'LineWidth', 2, 'DisplayName', 'Positive','Color','#7E2F8E');
+hold off;
+
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Aspartic Acid across pH Spectrum');
+grid on;
+
+T = table(pH_range(:), Overall_Charge_All_AA(:), 'VariableNames', {'pH', 'OverallCharge'});
+writetable(T, 'Aspartic_Acid_Overall_Charge.xlsx');
