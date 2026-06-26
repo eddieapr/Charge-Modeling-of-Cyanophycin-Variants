@@ -1,0 +1,70 @@
+%% Charge per Monomer vs Chain Length for β-(Arg/Lys)-Asp Polymer --> redo given the molar ratios
+clear; close all; clc;
+
+%pKa values from amino acid literature
+pKa_Nterm_NH2        = 9.60;   % Asp N-terminal α-NH2 (end group)--> only one
+pKa_Cterm_COOH       = 1.88;   % Asp C-terminal α-COOH (end group)--> only one
+pKa_Arg_guanidinium  = 13.80;  % Arg side chain guanidinium (free)
+pKa_Arg_alpha_COOH   = 2.17;   % Arg α-COOH (free)
+pKa_Lys_epsilon_NH2  = 10.53;  % Lys ε-NH2 side chain (free)
+pKa_Lys_alpha_COOH   = 2.18;   % Lys α-COOH (free)
+
+%pH range
+pH = linspace(0, 14, 1000)';
+
+%Polymer lengths to vary and this hope works 
+n_range = [1 2 5 10 20 50 100 1000 10000];
+
+%Fractional ionizations
+% End groups (once per chain and allows for chain elongation but diminishes as n increases)
+frac_Nterm_pos      = 1 ./ (1 + 10.^(pH - pKa_Nterm_NH2));        % Asp α-NH3+ (N-term)
+frac_Cterm_neg      = 1 ./ (1 + 10.^(-pH + pKa_Cterm_COOH));      % Asp α-COO− (C-term)
+
+% Arg contributions  
+frac_Arg_side_pos   = 1 ./ (1 + 10.^(pH - pKa_Arg_guanidinium));  % Arg guanidinium +
+frac_Arg_coo_neg    = 1 ./ (1 + 10.^(-pH + pKa_Arg_alpha_COOH));  % Arg α-COO−
+
+% Lys contributions 
+frac_Lys_side_pos   = 1 ./ (1 + 10.^(pH - pKa_Lys_epsilon_NH2));  % Lys ε-NH3+
+frac_Lys_coo_neg    = 1 ./ (1 + 10.^(-pH + pKa_Lys_alpha_COOH));  % Lys α-COO−
+
+% Excel data for origin graphing 
+excel_data = array2table(pH, 'VariableNames', {'pH'});
+
+%  Plot
+figure;
+hold on;
+colors = lines(length(n_range));
+
+for i = 1:length(n_range)
+    n = n_range(i);
+
+    %Total net charge (per chain)
+    net_charge_total = ...
+        (frac_Nterm_pos - frac_Cterm_neg) + ...                            % Asp end groups, once per chain
+        n .* 0.5 .* (frac_Arg_side_pos - frac_Arg_coo_neg) + ...          % Arg (0.5 per monomer)
+        n .* 0.5 .* (frac_Lys_side_pos - frac_Lys_coo_neg);               % Lys (0.5 per monomer)
+
+    %  Normalize per monomer 
+    net_charge_per_monomer = net_charge_total ./ n;
+
+    %  Plot 
+    plot(pH, net_charge_per_monomer, 'Color', colors(i,:), 'LineWidth', 2, ...
+        'DisplayName', ['n = ' num2str(n)]);
+
+    %Add column to Excel data
+    excel_data.(['n_' num2str(n)]) = net_charge_per_monomer;
+end
+
+xlabel('pH');
+ylabel('Net Charge per Monomer');
+title('Charge per Monomer vs Chain Length for Soluble Polymer');
+legend('Location','best');
+grid on;
+ax = gca; ax.FontSize = 14;
+hold off;
+
+% --- Export to Excel ---
+filename = 'beta_ArgLys_Asp_charge_per_monomer.xlsx';
+writetable(excel_data, filename);
+disp(['Data exported to Excel file: ', filename]);
