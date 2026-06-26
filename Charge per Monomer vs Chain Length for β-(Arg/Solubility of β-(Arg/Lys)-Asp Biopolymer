@@ -1,0 +1,89 @@
+%% Charge Speciation and Solubility of β-(Arg/Lys)-Asp Biopolymer
+% Each polymer:
+%   - 1 Asp α-NH2 (N-terminus, + when protonated)
+%   - 1 Asp α-COOH (C-terminus, − when deprotonated)
+%   - N Arg guanidinium side chains (+ when protonated)
+%   - N Arg α-COOH groups (− when deprotonated)
+%   - N Lys ε-NH2 side chains (+ when protonated)
+%   - N Lys α-COOH groups (− when deprotonated)
+
+clear; close all; clc;
+
+% Define number of β-(Arg/Lys)-Asp units
+N = 100000;  % Change to simulate elongation
+
+% Define pKa values (no averaging)
+pKa_Asp_alpha_amino    = 9.60;   % Asp N-terminus α-NH2
+pKa_Asp_alpha_carboxyl = 1.88;   % Asp C-terminus α-COOH
+pKa_Arg_guanidinium    = 13.80;  % Arg side chain (guanidinium)
+pKa_Arg_alpha_carboxyl = 2.17;   % Arg α-COOH
+pKa_Lys_epsilon_amino  = 10.53;  % Lys side chain (ε-NH2)
+pKa_Lys_alpha_carboxyl = 2.18;   % Lys α-COOH
+
+% Define pH range
+pH = linspace(0, 14, 1000);
+
+%% Fractional ionization (Henderson–Hasselbalch)
+% Basic groups (+ when protonated)
+frac_Asp_amino_pos  = 1 ./ (1 + 10.^(pH - pKa_Asp_alpha_amino));  % Asp α-NH3+
+frac_Arg_side_pos   = 1 ./ (1 + 10.^(pH - pKa_Arg_guanidinium));  % Arg guanidinium+
+frac_Lys_side_pos   = 1 ./ (1 + 10.^(pH - pKa_Lys_epsilon_amino));% Lys ε-NH3+
+
+% Acidic groups (− when deprotonated)
+frac_Asp_coo_neg    = 1 ./ (1 + 10.^(-pH + pKa_Asp_alpha_carboxyl)); % Asp α-COO−
+frac_Arg_coo_neg    = 1 ./ (1 + 10.^(-pH + pKa_Arg_alpha_carboxyl)); % Arg α-COO−
+frac_Lys_coo_neg    = 1 ./ (1 + 10.^(-pH + pKa_Lys_alpha_carboxyl)); % Lys α-COO−
+
+%% Compute total charge per chain
+% + from Asp α-NH3+ (1)
+% − from Asp α-COO− (1)
+% + from N Arg guanidinium groups
+% − from N Arg α-COO− groups
+% + from N Lys ε-NH3+ groups
+% − from N Lys α-COO− groups
+net_charge_total = ...
+    (frac_Asp_amino_pos - frac_Asp_coo_neg) + ...
+    N * ((frac_Arg_side_pos - frac_Arg_coo_neg) + (frac_Lys_side_pos - frac_Lys_coo_neg));
+
+%% Define solubility heuristic
+soluble   = (net_charge_total >  0.5 * N) | (net_charge_total < -0.5 * N);
+insoluble = ~soluble;
+
+%% Plot 1: Ionization of functional groups
+figure;
+hold on;
+plot(pH, frac_Asp_amino_pos,  'b',  'LineWidth', 4, 'DisplayName', 'Asp α-NH_2 (terminal)');
+plot(pH, frac_Asp_coo_neg,    'c',  'LineWidth', 4, 'DisplayName', 'Asp α-COO- (terminal)');
+plot(pH, frac_Arg_side_pos,   'r',  'LineWidth', 4, 'DisplayName', 'Arg β-NH_2 (per Arg)');
+plot(pH, frac_Arg_coo_neg,    'm','LineWidth', 4, 'DisplayName', 'Arg α-COO-(per Arg)');
+plot(pH, frac_Lys_side_pos,   'g',  'LineWidth', 4, 'DisplayName', 'Lys β-NH_2 (per Lys)');
+plot(pH, frac_Lys_coo_neg,    'k','LineWidth', 4, 'DisplayName', 'Lys α-COO- (per Lys)');
+
+% 💡 Add solubility shading
+fill([pH(fliplr(find(soluble))) pH(find(soluble))], ...
+     [zeros(size(find(soluble))) ones(size(find(soluble)))], ...
+     'white', 'FaceAlpha', 0.15, 'EdgeColor', 'none', 'DisplayName', 'Soluble');
+fill([pH(fliplr(find(insoluble))) pH(find(insoluble))], ...
+     [zeros(size(find(insoluble))) ones(size(find(insoluble)))], ...
+     'green', 'FaceAlpha', 0.15, 'EdgeColor', 'none', 'DisplayName', 'Insoluble');
+
+xlabel('pH');
+ylabel('Fraction Ionized');
+title(['Ionization of β-(Asp-Arg-Lys) Polymer (N = ', num2str(N), ')']);
+legend('Location', 'bestoutside',FontSize=26);
+grid on;
+ax = gca; ax.FontSize = 32;
+hold off;
+% 
+% %% Plot 2: Net Charge vs pH
+% figure;
+% plot(pH, net_charge_total, 'k', 'LineWidth', 2);
+% xlabel('pH');
+% ylabel(['Net Charge (per chain, N = ', num2str(N), ')']);
+% title('Charge Speciation of β-(Arg/Lys)-Asp Polymer');
+% grid on;
+%     ax = gca; ax.FontSize = 32;
+% 
+% %% Export data
+% NetCPG = table(pH(:), net_charge_total(:), 'VariableNames', {'pH', 'OverallCharge'});
+% writetable(NetCPG, 'Cyanophycin_Charge_Speciation.xlsx');
