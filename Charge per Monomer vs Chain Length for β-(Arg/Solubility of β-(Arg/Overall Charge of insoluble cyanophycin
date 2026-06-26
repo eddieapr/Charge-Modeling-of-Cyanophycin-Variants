@@ -1,0 +1,36 @@
+
+%% Overall Charge of insoluble cyanphocin 
+
+% Define pKa values
+pKa_guanidinium = 12.48;
+pKa_carboxyl = 2.17;
+
+% Define pH range
+pH = linspace(0, 16, 1000);
+
+% Calculate charge states
+fraction_guanidinium_pos = 1 ./ (1 + 10.^(pH - pKa_guanidinium)); % Guanidinium is positive below pKa
+fraction_carboxyl_neg = 1 ./ (1 + 10.^(-pH + pKa_carboxyl)); % Carboxyl is negative above pKa
+
+% Define overall charge speciation for insoluble cyanophycin
+net_charge = fraction_guanidinium_pos - fraction_carboxyl_neg;
+
+% Define solubility conditions
+soluble = (pH < pKa_carboxyl) | (pH > pKa_guanidinium); % Soluble when outside the intermediate range
+insoluble = ~soluble; % Insoluble in the intermediate range
+
+% Plot the charge speciation
+figure;
+hold on;
+plot(pH, net_charge, 'k', 'LineWidth', 2, 'DisplayName', 'Net Charge');
+
+
+% Labels and legend
+ax = gca;
+ax.FontSize = 15; 
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Insoluble Cyanophcyin Across pH');
+legend;
+grid on;
+hold off;
