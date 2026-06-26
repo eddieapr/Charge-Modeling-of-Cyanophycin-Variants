@@ -1,0 +1,84 @@
+clear; clc;
+%% Charge Speciation and Solubility of β-Arg-Asp Biopolymer
+% Each polymer:
+%   - 1 Asp α-NH2 (N-terminus, + when protonated)
+%   - 1 Asp α-COOH (C-terminus, − when deprotonated)
+%   - N Arg guanidinium side chains (+ when protonated)
+%   - N Arg α-COOH groups (− when deprotonated) 
+
+clear; close all; clc;
+
+% Define number of β-Arg-Asp units (N)
+N = 100000;   % Change this to simulate elongation (N, N+1, etc.)
+
+% Define pKa values
+pKa_Asp_alpha_amino    = 9.6;     % Asp α-NH2 (N-terminal)
+pKa_Asp_alpha_carboxyl = 1.88;     % Asp α-COOH (C-terminal)
+pKa_Arg_alpha_carboxyl = 2.18;    % Arg α-COOH (per Arg residue)  <-- ADDED
+pKa_Arg_guanidinium    = 13.8;   % Arg side-chain guanidinium
+
+% Define pH range
+pH = linspace(0, 14, 1000);
+
+%% Fractional ionization
+% Terminal Asp groups (each only appear once)
+fraction_Asp_amino_pos    = 1 ./ (1 + 10.^(pH - pKa_Asp_alpha_amino));     % Asp NH3+ fraction (N-term)
+fraction_Asp_carboxyl_neg = 1 ./ (1 + 10.^(-pH + pKa_Asp_alpha_carboxyl)); % Asp COO- fraction (C-term)
+
+% Arginine groups (scale with N)
+fraction_guanidinium_pos  = 1 ./ (1 + 10.^(pH - pKa_Arg_guanidinium));        % Arg side chain (+)
+fraction_Arg_alpha_coo_neg = 1 ./ (1 + 10.^(-pH + pKa_Arg_alpha_carboxyl)); % Arg α-COO- (per Arg)  
+
+%% Compute total charge
+% Charge contributions:
+%   + from Asp α-NH3+  (1 total)
+%   - from Asp α-COO−  (1 total)
+%   + from N Arg guanidinium groups
+%   - from N Arg α-COO− groups 
+net_charge_total = (fraction_Asp_amino_pos - fraction_Asp_carboxyl_neg) ...
+                   + N .* (fraction_guanidinium_pos - fraction_Arg_alpha_coo_neg);
+
+%% Define solubility heuristic
+% Insoluble near net neutral region, soluble when highly charged
+% Threshold scales with N (so large chains need larger net charge to be "highly charged")
+soluble = (net_charge_total > 0.5 * N) | (net_charge_total < -0.5 * N);
+insoluble = ~soluble;
+
+%% Plot 1: Ionization of functional groups
+figure;
+hold on;
+plot(pH, fraction_Asp_amino_pos, 'b', 'LineWidth', 4, 'DisplayName', 'Asp α-NH_2 (terminal)');
+plot(pH, fraction_Asp_carboxyl_neg, 'c', 'LineWidth', 4, 'DisplayName', 'Asp α-COO- (terminal)');
+plot(pH, fraction_guanidinium_pos, 'r', 'LineWidth', 4, 'DisplayName', 'Arg β-NH_2 (per Arg)');
+plot(pH, fraction_Arg_alpha_coo_neg, 'm', 'LineWidth', 4, 'DisplayName', 'Arg α-COO- (per Arg)'); 
+
+% Visualize soluble/insoluble regions
+fill([pH(fliplr(find(soluble))) pH(find(soluble))], ...
+     [zeros(size(find(soluble))) ones(size(find(soluble)))], ...
+     'white', 'FaceAlpha', 0.15, 'EdgeColor', 'none', 'DisplayName', 'Soluble');
+fill([pH(fliplr(find(insoluble))) pH(find(insoluble))], ...
+     [zeros(size(find(insoluble))) ones(size(find(insoluble)))], ...
+     'green', 'FaceAlpha', 0.15, 'EdgeColor', 'none', 'DisplayName', 'Insoluble');
+
+xlabel('pH', FontSize=32);
+ylabel('Fraction Ionized', fontsize=22);
+title(['Ionization of β-Arg-Asp (N = ', num2str(N), ')']);
+legend('Location','bestoutside',FontSize=26);
+grid on;
+ax = gca;
+ax.FontSize = 32;
+hold off;
+
+
+
+%% Plot 2: Net Charge vs pH
+% figure;
+% plot(pH, net_charge_total, 'k', 'LineWidth', 2);
+% xlabel('pH');
+% ylabel(['Net Charge (per chain, N = ', num2str(N), ')']);
+% title('Charge Speciation of β-Arg-Asp Polymer (including Arg α-COO^-)');
+% grid on;
+% ax = gca;
+% ax.FontSize = 14;
+% NetInsolubelCPG= table(pH(:), net_charge_total(:), 'VariableNames', {'pH', 'OverallCharge'});
+% writetable(NetInsolubelCPG, 'InsolubleCPGFinal_Overall_Charge.xlsx');
