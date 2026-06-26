@@ -1,0 +1,57 @@
+%% Charge per Monomer vs Chain Length for β-Asp–Arg Polymer 
+
+% Define pKa values
+pKa_Nterm_NH2      = 9.6;    % N-terminal α-NH2 on Asp
+pKa_Cterm_COOH     = 1.88;    % C-terminal α-COOH on Asp
+pKa_beta_COOH_Arg  = 2.17;    % Arg side-chain β-COOH (per monomer)
+pKa_guanidinium_Arg = 13.80;  % Arg side-chain guanidinium (per monomer)
+
+% pH range
+pH = linspace(0, 14, 1000)';
+
+% range of polymer lengths
+n_range = [1 2 5 10 20 50 100 1000 10000];
+
+% compute fractional ionization since each part adds a charge
+frac_Nterm_pos    = 1 ./ (1 + 10.^(pH - pKa_Nterm_NH2));
+frac_Cterm_neg    = 1 ./ (1 + 10.^(-pH + pKa_Cterm_COOH));
+frac_Asp_beta_neg = 1 ./ (1 + 10.^(-pH + pKa_beta_COOH_Arg));
+frac_Arg_pos      = 1 ./ (1 + 10.^(pH - pKa_guanidinium_Arg));
+
+% Prepare Excel data for Origin conversion
+excel_data = array2table(pH, 'VariableNames', {'pH'});
+
+figure;
+hold on;
+colors = lines(length(n_range));
+
+for i = 1:length(n_range)
+    n = n_range(i);
+    
+    % Compute total charge
+    net_charge_total = frac_Nterm_pos - frac_Cterm_neg + n .* (frac_Arg_pos - frac_Asp_beta_neg);
+    
+    % Net charge per monomer
+    net_charge_per_monomer = net_charge_total ./ n;
+    
+    % Plot
+    plot(pH, net_charge_per_monomer, 'Color', colors(i,:), 'LineWidth', 2, ...
+        'DisplayName', ['n = ' num2str(n)]);
+    
+    % Add column to Excel data 
+    excel_data.(['n_' num2str(n)]) = net_charge_per_monomer;
+end
+
+xlabel('pH');
+ylabel('Net Charge per Monomer');
+title('Net Charge per Monomer with Polymer Length');
+legend('Location','best');
+grid on;
+ax = gca; ax.FontSize = 14;
+hold off;
+
+% Export to Excel
+filename = 'betaAspArg_charge_per_monomer.xlsx';
+writetable(excel_data, filename);
+disp(['Data exported to Excel file: ', filename]);
+
