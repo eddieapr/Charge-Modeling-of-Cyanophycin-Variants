@@ -1,0 +1,93 @@
+clear; clc;
+%% Arginine (Carboxylic Acid Group)
+% Charge speciation of Arginine carboxylic acid group across pH spectrum
+
+% Define pH range
+pH_range = 0:0.1:14;  % Updated pH range
+
+% Define pKa value for carboxylic acid group
+pKa_carboxylic_Arg = 2.17;
+
+% Calculate protonation state of carboxylic acid group
+COOH_Arg = (1 ./ (1 + 10.^(pH_range - pKa_carboxylic_Arg)))-1;
+
+
+
+% Plot the charge speciation
+figure;
+plot(pH_range, COOH_Arg, '--', 'LineWidth', 2, 'DisplayName', 'Overall Charge', 'Color', '#FF0000');
+hold off;
+
+% Add labels and title
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Arginine Carboxylic Acid Group across pH Spectrum');
+grid on;
+
+%% Arginine (Amino Group)
+% Charge speciation of Arginine amino group across pH spectrum
+
+% Define pH range
+pH_range = 0:0.1:14;  % Updated pH range
+
+% Define pKa value for amino group
+pKa_amino_nterm_Arg = 9.04;
+
+% Calculate protonation state of amino group
+NH3_nterm_Arg = 1 ./ (1 + 10.^(pH_range - pKa_amino_nterm_Arg));
+
+
+% Plot the charge speciation
+figure;
+plot(pH_range, NH3_nterm_Arg, '--', 'LineWidth', 2, 'DisplayName', 'Overall Charge','Color', '#0000FF');
+hold off;
+
+% Add labels and title
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Arginine Amino Group across pH Spectrum');
+grid on;
+
+%% Arginine (Side Chain)
+% Charge speciation of Arginine side chain amino group across pH spectrum
+
+% Define pH range
+pH_range = 0:0.1:14;  % Updated pH range
+
+% Define pKa value for side chain amino group
+pKa_amino_sidechain_Arg = 13.80;
+
+% Calculate protonation state of side chain amino group
+NH3_sidechain_Arg = 1 ./ (1 + 10.^(pH_range - pKa_amino_sidechain_Arg));
+
+
+
+
+% Plot the charge speciation
+figure;
+plot(pH_range, NH3_sidechain_Arg, '--', 'LineWidth', 2, 'DisplayName', 'Overall Charge','Color','#77AC30');
+hold off;
+
+% Add labels and title
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Arginine Side Chain across pH Spectrum');
+grid on;
+
+
+%% Arginine Overall
+
+%Calculate overall charge for Arginine
+Overall_Charge_All_Arg = COOH_Arg+NH3_sidechain_Arg+NH3_nterm_Arg;
+
+figure;
+plot(pH_range, Overall_Charge_All_Arg, 'g-', 'LineWidth', 2, 'DisplayName', 'Arginine','Color','#7E2F8E');
+hold off;
+
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Arginine across pH Spectrum');
+grid on;
+
+T = table(pH_range(:), Overall_Charge_All_Arg(:), 'VariableNames', {'pH', 'OverallCharge'});
+writetable(T, 'Arginine_Overall_Charge.xlsx');
