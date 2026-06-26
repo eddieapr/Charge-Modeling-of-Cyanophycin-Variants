@@ -1,0 +1,43 @@
+%% Overall Charge of Soluble Cyanophycin 
+pKa_guanidinium = 13.8;
+pKa_carboxyl = 2.17;
+pKa_lysine = 10.53;
+
+% Define pH range
+pH = linspace(0, 16, 1000);
+
+% Calculate charge states
+% Calculate charge states
+fraction_guanidinium_pos = 1 ./ (1 + 10.^(pH - pKa_guanidinium)); % Guanidinium is positive below pKa
+fraction_carboxyl_neg = .5 ./ (1 + 10.^(-pH + pKa_carboxyl)); % Carboxyl is negative above pKa
+fraction_lysine_pos = .5 ./ (1 + 10.^(pH - pKa_lysine)); % Lysine contributes two positive charges below its pKa
+
+% Define overall charge speciation for soluble cyanophycin
+net_charge = fraction_guanidinium_pos + fraction_lysine_pos - fraction_carboxyl_neg;
+
+% Define solubility conditions
+soluble = (pH < pKa_carboxyl) | (pH > pKa_guanidinium) | (pH < pKa_lysine); % Soluble when extra positive charge from lysine interacts with water
+insoluble = ~soluble; % Insoluble in the intermediate range
+
+% Plot the charge speciation
+figure;
+hold on;
+%plot(pH, fraction_guanidinium_pos, 'r', 'LineWidth', 2, 'DisplayName', 'Guanidinium (+)');
+%plot(pH, fraction_carboxyl_neg, 'b', 'LineWidth', 2, 'DisplayName', 'Carboxyl (-)');
+%plot(pH, fraction_lysine_pos, 'g', 'LineWidth', 2, 'DisplayName', 'Lysine (+)');
+plot(pH, net_charge, 'k', 'LineWidth', 2, 'DisplayName', 'Net Charge');
+
+% Highlight solubility regions
+%fill([pH(fliplr(find(soluble))) pH(find(soluble))], [zeros(size(find(soluble))) ones(size(find(soluble)))], 'c', 'FaceAlpha', 0.2, 'EdgeColor', 'none', 'DisplayName', 'Soluble');
+%fill([pH(fliplr(find(insoluble))) pH(find(insoluble))], [zeros(size(find(insoluble))) ones(size(find(insoluble)))], 'y', 'FaceAlpha', 0.2, 'EdgeColor', 'none', 'DisplayName', 'Insoluble');
+
+% Labels and legend
+hold on
+ax = gca;
+ax.FontSize = 15; 
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation Across pH for Soluble Cyanophycin');
+legend;
+grid on;
+hold off;
