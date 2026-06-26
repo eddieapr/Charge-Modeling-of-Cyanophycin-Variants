@@ -1,0 +1,90 @@
+clear; clc;
+%% Lysine (Carboxylic Acid Group)
+% Charge speciation of lysine carboxylic acid group across pH spectrum
+
+% Define pH range
+pH_range = 0:0.1:14;  % Updated pH range
+
+% Define pKa value for carboxylic acid group
+pKa_carboxylic_Lys = 2.18;
+
+% Calculate protonation state of carboxylic acid group
+COOH_Lys = (1 ./ (1 + 10.^(pH_range - pKa_carboxylic_Lys)))-1;
+
+
+% Plot the charge speciation
+figure;
+plot(pH_range, COOH_Lys, '--', 'LineWidth', 2, 'DisplayName', 'Overall Charge', 'Color', '#FF0000');
+hold off;
+
+% Add labels and title
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Lysine Carboxylic Acid Group across pH Spectrum');
+grid on;
+
+%% Lysine (Amino Group)
+% Charge speciation of lysine amino group across pH spectrum
+
+% Define pH range
+pH_range = 0:0.1:14;  % Updated pH range
+
+% Define pKa value for amino group
+pKa_amino_nterm_Lys = 8.95;
+
+% Calculate protonation state of amino group
+NH3_nterm_Lys = 1 ./ (1 + 10.^(pH_range - pKa_amino_nterm_Lys));
+
+
+% Plot the charge speciation
+figure;
+plot(pH_range, NH3_nterm_Lys, '--', 'LineWidth', 2, 'DisplayName', 'Overall Charge','Color', '#0000FF');
+hold off;
+
+% Add labels and title
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Lysine Amino Group across pH Spectrum');
+grid on;
+
+%% Lysine (Side Chain)
+% Charge speciation of lysine side chain amino group across pH spectrum
+
+% Define pH range
+pH_range = 0:0.1:14;  % Updated pH range
+
+% Define pKa value for side chain amino group
+pKa_amino_sidechain_Lys = 10.53;
+
+% Calculate protonation state of side chain amino group
+NH3_sidechain_Lys = 1 ./ (1 + 10.^(pH_range - pKa_amino_sidechain_Lys));
+
+
+% Plot the charge speciation
+figure;
+plot(pH_range, NH3_sidechain_Lys, '--', 'LineWidth', 2, 'DisplayName', 'Overall Charge','Color','#77AC30');
+hold off;
+
+% Add labels and title
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Lysine Side Chain across pH Spectrum');
+grid on;
+
+
+%% Lysine Overall
+
+%Calculate overall charge for Lysine 
+Overall_Charge_All_Lys = NH3_sidechain_Lys+NH3_nterm_Lys+COOH_Lys;
+
+figure;
+plot(pH_range, Overall_Charge_All_Lys, 'g-', 'LineWidth', 2, 'DisplayName', 'Positive','Color','#7E2F8E');
+hold off;
+
+xlabel('pH');
+ylabel('Overall Charge');
+title('Charge Speciation of Lysine Side across pH Spectrum');
+grid on;
+
+T = table(pH_range(:), Overall_Charge_All_Lys(:), 'VariableNames', {'pH', 'OverallCharge'});
+writetable(T, 'Lysine_Overall_Charge.xlsx');
